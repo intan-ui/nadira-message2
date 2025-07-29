@@ -31,7 +31,7 @@
             transform-style: preserve-3d;
         }
         .page {
-            width: 100%;
+            width: 50%;
             height: 100%;
             position: absolute;
             backface-visibility: hidden;
@@ -46,8 +46,15 @@
             box-sizing: border-box;
             transition: transform 0.8s ease-in-out;
             transform-origin: left center;
+            right: 0;
+        }
+        .page.left {
+            transform-origin: right center;
+            left: 0;
+            right: auto;
         }
         .cover {
+            width: 100%;
             z-index: 10;
             background: url('https://images.unsplash.com/photo-1615484477201-9f4953340dbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80') center/cover no-repeat;
             color: #ff69b4;
@@ -62,7 +69,6 @@
             border-radius: 10px;
         }
         .page1, .page2, .page3 {
-            transform: rotateY(180deg);
             display: none;
         }
         .page.active {
@@ -73,6 +79,10 @@
         .page.flipping {
             transform: rotateY(-180deg);
             box-shadow: -8px 8px 20px rgba(0,0,0,0.3);
+        }
+        .page.flipping-back {
+            transform: rotateY(180deg);
+            box-shadow: 8px 8px 20px rgba(0,0,0,0.3);
         }
         .page img {
             max-width: 70%;
@@ -93,6 +103,7 @@
         }
         .flipped .cover {
             transform: rotateY(-180deg);
+            display: none;
         }
     </style>
 </head>
@@ -106,7 +117,7 @@
             <div class="page page1" id="page1">
                 <p>Hey Bestie! 😸<br><br>Your friendship is like a warm hug on a chilly day—totally pawsome! Thanks for all the giggles and memories! 🐾</p>
             </div>
-            <div class="page page2" id="page2">
+            <div class="page page2 left" id="page2">
                 <div>
                     <img src="https://i.imgur.com/8nK6t3D.jpeg" alt="Cute Cat Meme">
                     <p class="meme-text">When we hang out, it's PURR-fect! 😹<br>Here's to more crazy adventures!</p>
@@ -132,13 +143,14 @@
         let startX = 0;
         let isSwiping = false;
 
-        function showPage(index) {
+        function showPage(index, direction = 'forward') {
+            if (index < 0 || index >= pages.length) return;
             pages.forEach((page, i) => {
-                page.classList.remove('active', 'flipping');
+                page.classList.remove('active', 'flipping', 'flipping-back');
                 page.style.display = i === index ? 'flex' : 'none';
                 if (i === index) {
                     page.classList.add('active');
-                    setTimeout(() => page.classList.add('flipping'), 10);
+                    page.classList.add(direction === 'forward' ? 'flipping' : 'flipping-back');
                 }
             });
             if (index === 0) {
@@ -146,11 +158,11 @@
             } else {
                 book.classList.add('flipped');
             }
+            currentPage = index;
         }
 
         cover.addEventListener('click', () => {
-            currentPage = 1;
-            showPage(currentPage);
+            showPage(1);
         });
 
         book.addEventListener('touchstart', (e) => {
@@ -164,11 +176,9 @@
             const diffX = startX - currentX;
             if (Math.abs(diffX) > 50) {
                 if (diffX > 0 && currentPage < pages.length - 1) {
-                    currentPage++;
-                    showPage(currentPage);
+                    showPage(currentPage + 1, 'forward');
                 } else if (diffX < 0 && currentPage > 0) {
-                    currentPage--;
-                    showPage(currentPage);
+                    showPage(currentPage - 1, 'back');
                 }
                 isSwiping = false;
             }
@@ -189,11 +199,9 @@
             const diffX = startX - currentX;
             if (Math.abs(diffX) > 50) {
                 if (diffX > 0 && currentPage < pages.length - 1) {
-                    currentPage++;
-                    showPage(currentPage);
+                    showPage(currentPage + 1, 'forward');
                 } else if (diffX < 0 && currentPage > 0) {
-                    currentPage--;
-                    showPage(currentPage);
+                    showPage(currentPage - 1, 'back');
                 }
                 isSwiping = false;
             }
