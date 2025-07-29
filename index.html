@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Message for You</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #f4e4bc, #d9c2a6);
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .book-container {
+            perspective: 1000px;
+            width: 600px;
+            height: 400px;
+            position: relative;
+        }
+        .book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+        .page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: transform 0.7s ease;
+        }
+        .cover {
+            z-index: 10;
+            background: url('https://images.unsplash.com/photo-1507842217343-583bb727c8e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80') center/cover no-repeat;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .page1, .page2, .page3 {
+            transform: rotateY(180deg);
+            display: none;
+        }
+        .page.active {
+            display: flex;
+            transform: rotateY(0deg);
+        }
+        .page.flipping {
+            transition: transform 0.7s ease;
+        }
+        .page img {
+            max-width: 80%;
+            max-height: 80%;
+            border-radius: 10px;
+        }
+        .flipped .cover {
+            transform: rotateY(-180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="book-container">
+        <div class="book" id="book">
+            <div class="page cover" id="cover">
+                <h1>A Special Book for You</h1>
+                <p>Tap to Open</p>
+            </div>
+            <div class="page page1" id="page1">
+                <p>Dear Friend,<br><br>Your friendship lights up my world like nothing else. I'm so grateful for all the laughs and memories we've shared!</p>
+            </div>
+            <div class="page page2" id="page2">
+                <p>Remember our late-night chats and crazy adventures? Here's to many more moments that make life special.</p>
+            </div>
+            <div class="page page3" id="page3">
+                <div>
+                    <p>Forever my bestie!</p>
+                    <img src="https://images.unsplash.com/photo-1517487889990-1e6f222cdad9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80" alt="Our Photo Together">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const book = document.getElementById('book');
+        const cover = document.getElementById('cover');
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+        const page3 = document.getElementById('page3');
+        const pages = [cover, page1, page2, page3];
+        let currentPage = 0;
+        let startX = 0;
+        let isSwiping = false;
+
+        function showPage(index) {
+            pages.forEach((page, i) => {
+                page.classList.remove('active', 'flipping');
+                page.style.display = i === index ? 'flex' : 'none';
+                if (i === index) {
+                    page.classList.add('active');
+                    page.classList.add('flipping');
+                }
+            });
+            if (index === 0) {
+                book.classList.remove('flipped');
+            } else {
+                book.classList.add('flipped');
+            }
+        }
+
+        cover.addEventListener('click', () => {
+            currentPage = 1;
+            showPage(currentPage);
+        });
+
+        book.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isSwiping = true;
+        });
+
+        book.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            const currentX = e.touches[0].clientX;
+            const diffX = startX - currentX;
+            if (Math.abs(diffX) > 50) {
+                if (diffX > 0 && currentPage < pages.length - 1) {
+                    currentPage++;
+                    showPage(currentPage);
+                } else if (diffX < 0 && currentPage > 0) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+                isSwiping = false;
+            }
+        });
+
+        book.addEventListener('touchend', () => {
+            isSwiping = false;
+        });
+
+        book.addEventListener('mousedown', (e) => {
+            startX = e.clientX;
+            isSwiping = true;
+        });
+
+        book.addEventListener('mousemove', (e) => {
+            if (!isSwiping) return;
+            const currentX = e.clientX;
+            const diffX = startX - currentX;
+            if (Math.abs(diffX) > 50) {
+                if (diffX > 0 && currentPage < pages.length - 1) {
+                    currentPage++;
+                    showPage(currentPage);
+                } else if (diffX < 0 && currentPage > 0) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+                isSwiping = false;
+            }
+        });
+
+        book.addEventListener('mouseup', () => {
+            isSwiping = false;
+        });
+
+        book.addEventListener('mouseleave', () => {
+            isSwiping = false;
+        });
+    </script>
+</body>
+</html>
