@@ -16,7 +16,7 @@
             background: linear-gradient(to bottom, #f5e6d3, #8b6f47);
             font-family: 'Comic Neue', cursive;
             overflow: hidden;
-            touch-action: none;
+            touch-action: pan-y;
         }
         .book-container {
             perspective: 1200px;
@@ -38,7 +38,7 @@
             background: #fff5e6;
             border: 2px solid #ffb6c1;
             box-shadow: 8px 8px 20px rgba(0,0,0,0.2);
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             text-align: center;
@@ -68,9 +68,6 @@
             text-shadow: 2px 2px 4px rgba(255,255,255,0.7);
             border-radius: 10px;
         }
-        .page1, .page2, .page3 {
-            display: none;
-        }
         .page.active {
             display: flex;
             transform: rotateY(0deg);
@@ -79,10 +76,12 @@
         .page.flipping {
             transform: rotateY(-180deg);
             box-shadow: -8px 8px 20px rgba(0,0,0,0.3);
+            z-index: 6;
         }
         .page.flipping-back {
             transform: rotateY(180deg);
             box-shadow: 8px 8px 20px rgba(0,0,0,0.3);
+            z-index: 6;
         }
         .page img {
             max-width: 70%;
@@ -110,7 +109,7 @@
 <body>
     <div class="book-container">
         <div class="book" id="book">
-            <div class="page cover" id="cover">
+            <div class="page cover active" id="cover">
                 <h1>💖 Your Special Book! 💖</h1>
                 <p>Tap to Open~</p>
             </div>
@@ -142,36 +141,47 @@
         let currentPage = 0;
         let startX = 0;
         let isSwiping = false;
+        let isAnimating = false;
 
         function showPage(index, direction = 'forward') {
-            if (index < 0 || index >= pages.length) return;
-            pages.forEach((page, i) => {
-                page.classList.remove('active', 'flipping', 'flipping-back');
-                page.style.display = i === index ? 'flex' : 'none';
-                if (i === index) {
-                    page.classList.add('active');
-                    page.classList.add(direction === 'forward' ? 'flipping' : 'flipping-back');
+            if (index < 0 || index >= pages.length || isAnimating) return;
+            isAnimating = true;
+
+            const prevPage = pages[currentPage];
+            const nextPage = pages[index];
+
+            prevPage.classList.remove('active');
+            prevPage.classList.add(direction === 'forward' ? 'flipping' : 'flipping-back');
+
+            setTimeout(() => {
+                prevPage.style.display = 'none';
+                prevPage.classList.remove('flipping', 'flipping-back');
+                nextPage.style.display = 'flex';
+                nextPage.classList.add('active');
+                if (index === 0) {
+                    book.classList.remove('flipped');
+                } else {
+                    book.classList.add('flipped');
                 }
-            });
-            if (index === 0) {
-                book.classList.remove('flipped');
-            } else {
-                book.classList.add('flipped');
-            }
-            currentPage = index;
+                currentPage = index;
+                isAnimating = false;
+            }, 800); // Match CSS transition duration
         }
 
         cover.addEventListener('click', () => {
-            showPage(1);
+            if (currentPage === 0) {
+                showPage(1, 'forward');
+            }
         });
 
         book.addEventListener('touchstart', (e) => {
+            if (isAnimating) return;
             startX = e.touches[0].clientX;
             isSwiping = true;
         });
 
         book.addEventListener('touchmove', (e) => {
-            if (!isSwiping) return;
+            if (!isSwiping || isAnimating) return;
             const currentX = e.touches[0].clientX;
             const diffX = startX - currentX;
             if (Math.abs(diffX) > 50) {
@@ -189,12 +199,13 @@
         });
 
         book.addEventListener('mousedown', (e) => {
+            if (isAnimating) return;
             startX = e.clientX;
             isSwiping = true;
         });
 
         book.addEventListener('mousemove', (e) => {
-            if (!isSwiping) return;
+            if (!isSwiping || isAnimating) return;
             const currentX = e.clientX;
             const diffX = startX - currentX;
             if (Math.abs(diffX) > 50) {
